@@ -4,7 +4,7 @@
 
 # INFRASTRUCTURE PLATFORM
 
-# NGINX 1.28, NODEJS 22.16, POSTGRES 16.4
+# NGINX + NODEJS 24 + POSTGRES 18.2
 
 [![Generic badge](https://img.shields.io/badge/version-1.0-blue.svg)](https://shields.io/)
 [![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](./)
@@ -49,7 +49,7 @@ Despite Docker’s cross-platform compatibility, for intermediate to advanced so
 - **Docker Compose**: Manages multi-container setups and dependencies.
 - **GNU Make**: Automates build commands and workflows *(otherwise, commands must be executed manually)*.
 
-If you won't use GNU Make, Docker commands will have to be executed from within the `./platform/nginx-nodejs/docker` and `./platform/postgres-16.4/docker` directories, e.g.:
+If you won't use GNU Make, Docker commands will have to be executed from within the `./platform/nginx-nodejs/docker` and `./platform/postgres-18.2/docker` directories, e.g.:
 ```bash
 ./platform/nginx-nodejs/docker $ sudo docker compose up --build --no-recreate -d
 ```
@@ -87,9 +87,9 @@ The container instance has its dedicated GNU Make and the core Docker directory 
 Also, there is a copy at `./resources/docs/platform/` directory to contain the exact or the alternated scripts, so you can save or backup the different SDLC required configuration *(e.g. Testing, Staging, Production)*.
 
 Content:
-- Linux Alpine version 3.22
+- Linux Alpine version 3.23
 - NGINX version 1.28 *(or the latest on Alpine Package Keeper)*
-- NodeJS 22.16 *(upgradable)*
+- NodeJS 24 *(upgradable)*
 <br>
 
 > **Note**: There is a `./platform/nginx-nodejs/docker/.env.example` file with the variables required to build the container by `docker-compose.yml` file to create the container. Otherwise, if no GNU Make is available on developer's machine, it is required to create its `.env` manually to build the container.
@@ -98,7 +98,7 @@ API environment file content at `./platform/nginx-nodejs/docker`:
 ```bash
 COMPOSE_PROJECT_LEAD="myproj"
 COMPOSE_PROJECT_CNET="mp-dev"
-COMPOSE_PROJECT_IMGK="alpine3.21-nginx1.28-njs22"
+COMPOSE_PROJECT_IMGK="alpine3.23-nginx1.28-nodejs24"
 COMPOSE_PROJECT_NAME="mp-apirest-dev"
 COMPOSE_PROJECT_HOST="127.0.0.1"
 COMPOSE_PROJECT_PORT=7501
@@ -112,20 +112,20 @@ COMPOSE_PROJECT_GROUP="myproj"
 
 ## <a id="db-settings"></a>Database Service Container Setting
 
-Inside `./platform/pgsql-16.4` there are a dedicated GNU Make file and the main Docker directory with the scripts to build the required platform configuration adapted from [PostgreSQL GitHub repository source](https://github.com/docker-library/postgres/blob/master/17/alpine3.22/docker-entrypoint.sh)
+Inside `./platform/pgsql-18.2` there are a dedicated GNU Make file and the main Docker directory with the scripts to build the required platform configuration adapted from [PostgreSQL GitHub repository source](https://github.com/docker-library/postgres/blob/master/17/alpine3.22/docker-entrypoint.sh)
 
 Content:
 - Linux Alpine version 3.22
-- Postgres 16.4
+- Postgres 18.2
 <br>
 
-> **Note**: There is a `./platform/pgsql-16.4/docker/.env.example` file with the variables required to build the container by `docker-compose.yml` file to create the container. Otherwise, if no GNU Make is available on developer's machine, it is required to create its `.env` manually to build the container.
+> **Note**: There is a `./platform/pgsql-18.2/docker/.env.example` file with the variables required to build the container by `docker-compose.yml` file to create the container. Otherwise, if no GNU Make is available on developer's machine, it is required to create its `.env` manually to build the container.
 
-Database environment file content at `./platform/pgsql-16.4/docker`:
+Database environment file content at `./platform/pgsql-18.2/docker`:
 ```bash
 COMPOSE_PROJECT_LEAD="myproj"
 COMPOSE_PROJECT_CNET="mp-dev"
-COMPOSE_PROJECT_IMGK="alpine3.22-pgsql-16.4"
+COMPOSE_PROJECT_IMGK="alpine3.23-pgsql-18.2"
 COMPOSE_PROJECT_NAME="mp-pgsql-dev"
 COMPOSE_PROJECT_HOST="127.0.0.1"
 COMPOSE_PROJECT_PORT=7500
@@ -164,8 +164,8 @@ APIREST_GIT_HOST=github.org
 APIREST_GIT_BRANCH=develop
 APIREST_DOMAIN=
 
-DATABASE_PLTF=pgsql-16.4
-DATABASE_IMGK=alpine3.22-pgsql-16.4
+DATABASE_PLTF=pgsql-18.2
+DATABASE_IMGK=alpine3.22-pgsql-18.2
 DATABASE_PORT=7500
 DATABASE_CAAS=mp-pgsql-dev
 DATABASE_CAAS_MEM=128M
@@ -312,8 +312,8 @@ This streamlines the workflow for managing containers with mnemonic recipe names
 
 Clone the platforms repository
 ```bash
-$ git clone https://github.com/pabloripoll/docker-platform-nginx-nodejs-22-pgsql-16.4
-$ cd docker-platform-nginx-nodejs-22-pgsql-16.4
+$ git clone https://github.com/pabloripoll/platforms-docker-nginx-nodejs-24-pgsql-18.2
+$ cd platforms-docker-nginx-nodejs-24-pgsql-18.2
 ```
 
 Repository directories structure overview:
@@ -336,7 +336,7 @@ Repository directories structure overview:
 │   │   │   └── Dockerfile
 │   │   │
 │   │   └── Makefile
-│   └── postgres-16.4
+│   └── postgres-18.2
 │       ├── docker
 │       └── Makefile
 ├── .env
@@ -364,7 +364,7 @@ To remove the `./apirest` directory with the default installation content and in
   ```bash
   $ rm -rfv ./apirest/* ./apirest/.[!.]*$
   $ git rm -r --cached apirest
-  $ git commit -m "Remove apirest directory and its default installation"
+  $ git commit -m "maint: removed apirest directory and its default installation"
   ```
 
 - Add the desired repository as a submodule:
@@ -396,7 +396,7 @@ To remove the `./apirest` directory with the default installation content and in
   $ git rm -r --cached apirest
   $ git clean -fd
   $ git reset --hard
-  $ git commit -m "Remove apirest directory and its default installation"
+  $ git commit -m "maint: removed apirest directory and its default installation"
   ```
 
 - Clone the desired repository as a detached repository:
