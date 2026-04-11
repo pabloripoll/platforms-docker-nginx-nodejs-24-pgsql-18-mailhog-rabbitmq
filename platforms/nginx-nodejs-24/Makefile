@@ -25,15 +25,15 @@ DOCKER_PLTF="NGINX - NODEJS 24"
 DOCKER_LEAD=$(PROJECT_LEAD)
 DOCKER_CNET=$(PROJECT_CNET)
 DOCKER_HOST=$(PROJECT_HOST)
-DOCKER_IMGK=$(WEBAPP_IMGK)
-DOCKER_CAAS=$(WEBAPP_CAAS)
-DOCKER_PORT=$(WEBAPP_PORT)
-DOCKER_BIND=$(WEBAPP_BIND)
-DOCKER_CPUS=$(WEBAPP_CAAS_CPUS)
-DOCKER_MEM=$(WEBAPP_CAAS_MEM)
-DOCKER_SWAP=$(WEBAPP_CAAS_SWAP)
-DOCKER_USER=$(WEBAPP_CAAS_USER)
-DOCKER_GROUP=$(WEBAPP_CAAS_GROUP)
+DOCKER_IMGK=$(APIREST_IMGK)
+DOCKER_CAAS=$(APIREST_CAAS)
+DOCKER_PORT=$(APIREST_PORT)
+DOCKER_BIND=$(APIREST_BIND)
+DOCKER_CPUS=$(APIREST_CAAS_CPUS)
+DOCKER_MEM=$(APIREST_CAAS_MEM)
+DOCKER_SWAP=$(APIREST_CAAS_SWAP)
+DOCKER_USER=$(APIREST_CAAS_USER)
+DOCKER_GROUP=$(APIREST_CAAS_GROUP)
 
 ROOT_DIR=$(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
 DIR_BASENAME=$(shell basename $(ROOT_DIR))
@@ -96,13 +96,13 @@ else
 	COMPOSE_PROJECT_GROUP=\"$(DOCKER_GROUP)\"" > ./docker/.env; \
 	chmod +x ./docker/config/ownerships.sh
 	./docker/config/ownerships.sh $(DOCKER_USER) $(DOCKER_GROUP)
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" WEBAPP "${C_YEL}$(DOCKER_PLTF)${C_END}" - "${C_YEL}"docker-compose.yml"${C_END}" .env file "${C_GRN}"has been set."${C_END};
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" WEBAPP "${C_YEL}$(DOCKER_PLTF)${C_END}" - Container name: "${C_GRN}$(DOCKER_CONTAINER)${C_END}
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" WEBAPP "${C_YEL}$(DOCKER_PLTF)${C_END}" - Container image: "${C_GRN}$(DOCKER_CONTAINER):$(DOCKER_IMGK)${C_END}
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" WEBAPP "${C_YEL}$(DOCKER_PLTF)${C_END}" - Max. CPUs: "${C_GRN}$(DOCKER_CPUS)${C_END}
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" WEBAPP "${C_YEL}$(DOCKER_PLTF)${C_END}" - Max. memory: "${C_GRN}$(DOCKER_MEM)${C_END}" - Swap: "${C_GRN}$(DOCKER_SWAP)${C_END}
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" WEBAPP "${C_YEL}$(DOCKER_PLTF)${C_END}" - Localhost: http://127.0.0.1:"${C_GRN}"$(DOCKER_PORT)"${C_END};
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" WEBAPP "${C_YEL}$(DOCKER_PLTF)${C_END}" - Hostname: http://$(word 1,$(shell hostname -I)):"${C_GRN}"$(DOCKER_PORT)"${C_END};
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" APIREST "${C_YEL}$(DOCKER_PLTF)${C_END}" - "${C_YEL}"docker-compose.yml"${C_END}" .env file "${C_GRN}"has been set."${C_END};
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" APIREST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Container name: "${C_GRN}$(DOCKER_CONTAINER)${C_END}
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" APIREST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Container image: "${C_GRN}$(DOCKER_CONTAINER):$(DOCKER_IMGK)${C_END}
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" APIREST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Max. CPUs: "${C_GRN}$(DOCKER_CPUS)${C_END}
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" APIREST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Max. memory: "${C_GRN}$(DOCKER_MEM)${C_END}" - Swap: "${C_GRN}$(DOCKER_SWAP)${C_END}
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" APIREST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Localhost: http://127.0.0.1:"${C_GRN}"$(DOCKER_PORT)"${C_END};
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" APIREST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Hostname: http://$(word 1,$(shell hostname -I)):"${C_GRN}"$(DOCKER_PORT)"${C_END};
 endif
 
 # -------------------------------------------------------------------------------------------------
