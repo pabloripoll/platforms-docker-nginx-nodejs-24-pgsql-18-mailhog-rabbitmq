@@ -98,11 +98,12 @@ COMPOSE_PROJECT_USER="myproj"                           # <- container's project
 COMPOSE_PROJECT_GROUP="myproj"                          # <- container's project directory group ------------------------------------------------------------> #
 ```
 
-<font color="orange"><b>IMPORTANT:</b></font>
+<font color="orange"><b>⚠️ IMPORTANT:</b></font>
 
-Although the project aims to keep platform settings consistent across machines, some runtime requirements can differ between environments *(for example: memory limits or which supervisord services should be active)*.
+- Set container memory and swap according to nodejs application requirements
 
-> Note: Though this platform aim is for REST API services, it also can be used for monolith web applications
+- Although the project aims to keep platform settings consistent across machines, some runtime requirements can differ between environments *(for example: memory limits or which supervisord services should be active)*.
+<br>
 
 ### Containers Access Modes
 
@@ -172,6 +173,8 @@ $ cp -vn conf.d-sample/nginx.conf conf.d-sample/nodejs.conf conf.d/
 ```
 
 This approach lets developers run additional worker processes locally without changing the shared platform settings. If you need to update Nginx, PHP, or supervisord configurations on a running container, there are Makefile recipes in `./platform/nginx-nodejs-24/Makefile` that can apply changes *(reload or update services)* without destroying and rebuilding the container. Check the Makefile for available targets and usage by executing `$ make help` in its directory.
+
+> Note: Though this platform aim is for REST/GRPC API service, it also can be used for Front-End web applications.
 <br><br>
 
 
@@ -204,10 +207,6 @@ $ make nginx-conf                     shows nginx configuration set on the runni
 $ make nginx-update                   updates nginx configuration without the need of stoping or rebuilding the container
 $ make nginx-default-conf             shows nginx default server block set on the running container
 $ make nginx-default-update           updates nginx default server block without the need of stoping or rebuilding the container
-$ make php-conf                       shows php configuration set on the running container
-$ make php-conf-update                updates php configuration without the need of stoping or rebuilding the container
-$ make php-fpm-conf                   shows PHP-FPM configuration set on the running container
-$ make php-fpm-update                 updates PHP-FPM configuration without the need of stoping or rebuilding the container
 ```
 <br><br>
 
