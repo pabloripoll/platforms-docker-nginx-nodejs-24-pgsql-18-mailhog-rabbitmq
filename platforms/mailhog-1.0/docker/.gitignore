@@ -1,6 +1,0 @@
-# .gitignore custom settings
-.env
-/data/*
-!/data/.gitkeep
-/log/*
-!/log/.gitkeep

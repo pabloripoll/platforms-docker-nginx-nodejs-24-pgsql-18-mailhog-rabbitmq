@@ -1,16 +1,12 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Editor directories and files
-.vscode/*
+# Editor and IDE files
+.vscode/
 !.vscode/extensions.json
-.idea
+.idea/
+*.iml
+*.swp
+*~
+*.sublime-project
+*.sublime-workspace
 .DS_Store
 *.suo
 *.ntvs*
@@ -25,20 +21,36 @@ vendor
 node_modules
 dist
 dist-ssr
-*.local
 
-# Platforms
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temp
+logs
+*.log
+*.tmp
+*.tmp.*
+*.cache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Project
+/Makefile
+/resources/automation/remote/*
+!/resources/automation/remote/.gitkeep
+/resources/databases/*
+!/resources/databases/.gitkeep
+/api-grpc/*
+!/api-grpc/.gitkeep
+/api-rest/*
+!/api-rest/.gitkeep
+/application/*
+!/application/.gitkeep
+
+# Developer's vault
 /vault
-/platform/nginx-nodejs-*/docker/config/supervisor/conf.d/*
-!/platform/nginx-nodejs-*/docker/config/supervisor/conf.d/.gitkeep
-/resources/database/*
-!/resources/database/.gitkeep
-/resources/docs/apirest/project/*
-!/resources/docs/apirest/project/.gitkeep
-/platform/mysql*/data
-/platform/mariadb*/data
-/platform/pgsql*/data
-/apirest/*
-!/apirest/.gitkeep
-/webapp/*
-!/webapp/.gitkeep

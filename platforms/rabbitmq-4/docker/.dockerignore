@@ -1,7 +1,4 @@
-.git
-.idea
-.vscode
-.gitignore
+# Ignore custom settings
 .git
 .gitignore
 .vscode

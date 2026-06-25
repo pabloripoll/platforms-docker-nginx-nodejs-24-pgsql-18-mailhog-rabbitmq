@@ -1,6 +1,6 @@
 services:
 
-  weapp:
+  apirest:
     image: ${COMPOSE_PROJECT_LEAD}-${COMPOSE_PROJECT_NAME}:${COMPOSE_PROJECT_IMGK}
     pull_policy: never
     build:
@@ -12,8 +12,6 @@ services:
         - USER=${COMPOSE_PROJECT_USER}
         - GROUP=${COMPOSE_PROJECT_GROUP}
     container_name: ${COMPOSE_PROJECT_LEAD}-${COMPOSE_PROJECT_NAME}
-    ports:
-      - ${COMPOSE_PROJECT_PORT}:80
     volumes:
       - type: bind
         source: ${COMPOSE_PROJECT_PATH}
@@ -21,6 +19,7 @@ services:
     deploy:
       resources:
         limits:
+          cpus: ${COMPOSE_PROJECT_CPUS}
           memory: ${COMPOSE_PROJECT_MEM}
     tty: true
     restart: unless-stopped

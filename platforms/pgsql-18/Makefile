@@ -21,25 +21,29 @@ endif
 
 include ../../.env
 
-DOCKER_PLTF="NGINX + NODEJS 24"
+DOCKER_PLTF="POSTGRES 18"
 DOCKER_LEAD=$(PROJECT_LEAD)
 DOCKER_CNET=$(PROJECT_CNET)
 DOCKER_HOST=$(PROJECT_HOST)
-DOCKER_IMGK=$(APIREST_IMGK)
-DOCKER_CAAS=$(APIREST_CAAS)
-DOCKER_PORT=$(APIREST_PORT)
-DOCKER_BIND=$(APIREST_BIND)
-DOCKER_CPUS=$(APIREST_CAAS_CPUS)
-DOCKER_MEM=$(APIREST_CAAS_MEM)
-DOCKER_SWAP=$(APIREST_CAAS_SWAP)
-DOCKER_USER=$(APIREST_CAAS_USER)
-DOCKER_GROUP=$(APIREST_CAAS_GROUP)
+DOCKER_IMGK=$(DATABASE_IMGK)
+DOCKER_CAAS=$(DATABASE_CAAS)
+DOCKER_PORT=$(DATABASE_PORT)
+DOCKER_BIND=$(DATABASE_BIND)
+DOCKER_CPUS=$(DATABASE_CAAS_CPUS)
+DOCKER_MEM=$(DATABASE_CAAS_MEM)
+DOCKER_SWAP=$(DATABASE_CAAS_SWAP)
 
-ROOT_DIR=$(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
-DIR_BASENAME=$(shell basename $(ROOT_DIR))
+SQL_ROOT=$(DATABASE_ROOT)
+SQL_NAME=$(DATABASE_NAME)
+SQL_USER=$(DATABASE_USER)
+SQL_PASS=$(DATABASE_PASS)
+
+CURRENT_DIR=$(patsubst %/,%,$(dir $(realpath $(firstword $(MAKEFILE_LIST)))))
+DIR_BASENAME=$(shell basename $(CURRENT_DIR))
+ROOT_DIR=$(CURRENT_DIR)
 
 DOCKER_CONTAINER:=$(addsuffix -$(DOCKER_CAAS), $(DOCKER_LEAD))
-DOCKER_COMPOSE_RUN=$(DOCKER_COMPOSE) run -v --rm
+DOCKER_COMPOSE_RUN=$(DOCKER_COMPOSE) run --rm
 DOCKER_EXEC_SSH=$(DOCKER) exec -it $(DOCKER_CONTAINER) sh
 
 # -------------------------------------------------------------------------------------------------
@@ -59,10 +63,10 @@ help: ## shows this Makefile help message
 
 port-check: ## shows this project port availability on local machine
 	echo "Checking configuration for "${C_YEL}"$(DOCKER_PLTF)"${C_END}" container:";
-	if [ -z "$($(DOCKER) lsof -i :$(DOCKER_PORT))" ]; then \
-		echo ${C_BLU}"$(DOCKER_PLTF)"${C_END}" > localhost:"${C_GRN}"$(DOCKER_PORT) is free to use."${C_END}; \
-    else \
-		echo ${C_BLU}"$(DOCKER_PLTF)"${C_END}" > localhost:"${C_RED}"$(DOCKER_PORT) is busy. Update ./.env file."${C_END}; \
+	if [ -z "$($(DOCKER_USER) lsof -i :$(DOCKER_PORT))" ]; then \
+		echo ${C_BLU}"$(DOCKER_PLTF)"${C_END}" > hostname:"${C_GRN}"$(DOCKER_PORT) is free to use."${C_END}; \
+	else \
+		echo ${C_BLU}"$(DOCKER_PLTF)"${C_END}" > hostname:"${C_RED}"$(DOCKER_PORT) is busy. Update ./.env file."${C_END}; \
 	fi
 
 # -------------------------------------------------------------------------------------------------
@@ -72,9 +76,9 @@ port-check: ## shows this project port availability on local machine
 
 env: ## checks if docker .env file exists
 	if [ -f ./docker/.env ]; then \
-		echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" - $(DOCKER_PLTF) "${C_YEL}"docker-compose.yml"${C_END}" .env file "${C_GRN}"is set."${C_END}; \
+		echo ${C_BLU}$(DOCKER_PLTF)${C_END}" docker-compose.yml .env file "${C_GRN}"is set."${C_END}; \
 	else \
-		echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" - $(DOCKER_PLTF) "${C_YEL}"docker-compose.yml"${C_END}" .env file "${C_RED}"is not set."${C_END}" \
+		echo ${C_BLU}$(DOCKER_PLTF)${C_END}" docker-compose.yml .env file "${C_RED}"is not set."${C_END}" \
 		Create it by executing "${C_YEL}"$$ make env-set"${C_END}; \
 	fi
 
@@ -88,21 +92,19 @@ else
 	COMPOSE_PROJECT_NAME=\"$(DOCKER_CAAS)\"\r\n\
 	COMPOSE_PROJECT_HOST=\"$(DOCKER_HOST)\"\r\n\
 	COMPOSE_PROJECT_PORT=$(DOCKER_PORT)\r\n\
-	COMPOSE_PROJECT_PATH=\"$(DOCKER_BIND)\"\r\n\
 	COMPOSE_PROJECT_CPUS=\"$(DOCKER_CPUS)\"\r\n\
 	COMPOSE_PROJECT_MEM=\"$(DOCKER_MEM)\"\r\n\
 	COMPOSE_PROJECT_SWAP=\"$(DOCKER_SWAP)\"\r\n\
-	COMPOSE_PROJECT_USER=\"$(DOCKER_USER)\"\r\n\
-	COMPOSE_PROJECT_GROUP=\"$(DOCKER_GROUP)\"" > ./docker/.env; \
-	chmod +x ./docker/config/ownerships.sh
-	./docker/config/ownerships.sh $(DOCKER_USER) $(DOCKER_GROUP)
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" API REST "${C_YEL}$(DOCKER_PLTF)${C_END}" - "${C_YEL}"docker-compose.yml"${C_END}" .env file "${C_GRN}"has been set."${C_END};
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" API REST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Container name: "${C_GRN}$(DOCKER_CONTAINER)${C_END}
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" API REST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Container image: "${C_GRN}$(DOCKER_CONTAINER):$(DOCKER_IMGK)${C_END}
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" API REST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Max. CPUs: "${C_GRN}$(DOCKER_CPUS)${C_END}
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" API REST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Max. memory: "${C_GRN}$(DOCKER_MEM)${C_END}" - Swap: "${C_GRN}$(DOCKER_SWAP)${C_END}
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" API REST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Localhost: http://127.0.0.1:"${C_GRN}"$(DOCKER_PORT)"${C_END};
-	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" API REST "${C_YEL}$(DOCKER_PLTF)${C_END}" - Hostname: http://$(word 1,$(shell hostname -I)):"${C_GRN}"$(DOCKER_PORT)"${C_END};
+	POSTGRES_DATABASE=$(SQL_NAME)\r\n\
+	POSTGRES_USER=$(SQL_USER)\r\n\
+	POSTGRES_PASSWORD=\"$(SQL_PASS)\""> ./docker/.env;
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" DATABASE "${C_YEL}$(DOCKER_PLTF)${C_END}" - "${C_YEL}"docker-compose.yml"${C_END}" .env file "${C_GRN}"has been set."${C_END};
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" DATABASE "${C_YEL}$(DOCKER_PLTF)${C_END}" - Container name: "${C_GRN}$(DOCKER_CONTAINER)${C_END}
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" DATABASE "${C_YEL}$(DOCKER_PLTF)${C_END}" - Container image: "${C_GRN}$(DOCKER_CONTAINER):$(DOCKER_IMGK)${C_END}
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" DATABASE "${C_YEL}$(DOCKER_PLTF)${C_END}" - Max. CPUs: "${C_GRN}$(DOCKER_CPUS)${C_END}
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" DATABASE "${C_YEL}$(DOCKER_PLTF)${C_END}" - Max. memory: "${C_GRN}$(DOCKER_MEM)${C_END}" - Swap: "${C_GRN}$(DOCKER_SWAP)${C_END}
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" DATABASE "${C_YEL}$(DOCKER_PLTF)${C_END}" - Localhost: http://127.0.0.1:"${C_GRN}"$(DOCKER_PORT)"${C_END};
+	echo ${C_BLU}"$(PROJECT_NAME)"${C_END}" DATABASE "${C_YEL}$(DOCKER_PLTF)${C_END}" - Hostname: http://$(word 1,$(shell hostname -I)):"${C_GRN}"$(DOCKER_PORT)"${C_END};
 endif
 
 # -------------------------------------------------------------------------------------------------
@@ -135,9 +137,6 @@ build: ## builds and ensures changes in the Dockerfile, build steps, or copied-i
 network: ## starts up into an existing custom network for container-to-container communication, runnning in detached mode
 	cd docker && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.network.yml up -d
 
-host-gateway: ## starts up for container-to-host communication, runnning in detached mode
-	cd docker && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.host-gateway.yml up -d
-
 start: ## starts the container and put on running from latest configuration
 	cd docker && $(DOCKER_COMPOSE) start
 
@@ -154,36 +153,42 @@ clear: ## removes container from Docker running containers
 
 destroy: ## delete container image from Docker cache
 	cd docker && $(DOCKER) rmi -f $(DOCKER_CONTAINER):$(DOCKER_IMGK)
+	cd docker && $(SUDO) rm -rf data root
 
 dev: ## sets a development enviroment
 	echo ${C_YEL}"\"dev\" recipe has not usage in this project"${C_END};
 
 # -------------------------------------------------------------------------------------------------
-#  Supervisord services management
+#  Testing Database
 # -------------------------------------------------------------------------------------------------
-.PHONY: supervisord-conf supervisord-conf-update
 
-supervisord-conf: ## lists supervisord services set on the running container
-	$(DOCKER) exec -i $(DOCKER_CONTAINER) sh -c 'ls -l /etc/supervisor/conf.d/'
+.PHONY: test-up test-down
 
-supervisord-update: ## updates supervisord services without the need of stoping or rebuilding the container
-	$(DOCKER) cp ./docker/config/supervisor/conf.d/. $(DOCKER_CONTAINER):/etc/supervisor/conf.d/
-	$(MAKE) restart
+test-up: ## creates a side database for testing porpuses
+	$(DOCKER) exec -it $(DOCKER_CONTAINER) sh -c 'dropdb -f $(DATABASE_NAME)_testing -U "$(DATABASE_USER)"; createdb $(DATABASE_NAME)_testing -U "$(DATABASE_USER)"';
+
+test-down: ## drops the side testing database
+	$(DOCKER) exec -it $(DOCKER_CONTAINER) sh -c 'dropdb -f $(DATABASE_NAME)_testing -U "$(DATABASE_USER)";';
 
 # -------------------------------------------------------------------------------------------------
-#  Nginx settings management
+#  PostgreSQL | directory path is defined in root .env file, e.g.: ./../../resources/database/
 # -------------------------------------------------------------------------------------------------
-.PHONY: nginx-conf nginx-update nginx-default-conf nginx-default-update
 
-nginx-conf: ## shows nginx configuration set on the running container
-	$(DOCKER) exec -i $(DOCKER_CONTAINER) sh -c 'cat /etc/nginx/conf.d/default.conf'
+.PHONY: sql-install sql-replace sql-backup sql-remote copy-remote
 
-nginx-update: ## updates nginx configuration without the need of stoping or rebuilding the container
-	$(DOCKER) cp ./docker/config/nginx/nginx.conf $(DOCKER_CONTAINER):/etc/nginx/conf.d/default.conf
+sql-install: ## migrates sql file with schema / data into the container main database to init a project
+	$(DOCKER) exec -i $(DOCKER_CONTAINER) sh -c 'psql -d $(DATABASE_NAME) -U "$(DATABASE_USER)"' < $(ROOT_DIR)$(DATABASE_PATH)$(DATABASE_INIT)
+	echo ${C_YEL}"$(PROJECT_NAME) DATABASE"${C_END}" has been copied to container from "${C_BLU}"$(DATABASE_PATH)$(DATABASE_INIT)"${C_END}
 
-nginx-default-conf: ## shows nginx default server block set on the running container
-	$(DOCKER) exec -i $(DOCKER_CONTAINER) sh -c 'cat /etc/nginx/conf.d/default.conf'
+sql-replace: ## replaces the container main database with the latest database .sql backup file
+	$(DOCKER) exec -i $(DOCKER_CONTAINER) sh -c 'psql -d $(DATABASE_NAME) -U "$(DATABASE_USER)"' < $(ROOT_DIR)$(DATABASE_PATH)$(DATABASE_BACK)
+	echo ${C_YEL}"$(PROJECT_NAME) DATABASE"${C_END}" has been replaced from "${C_BLU}"$(DATABASE_PATH)$(DATABASE_BACK)"${C_END}
 
-nginx-default-update: ## updates nginx default server block without the need of stoping or rebuilding the container
-	$(DOCKER) cp ./docker/config/nginx/conf.d/default.conf $(DOCKER_CONTAINER):/etc/nginx/conf.d/default.conf
+sql-backup: ## copies the container main database as backup into a .sql file
+	[ -d .$(DATABASE_PATH)$(DATABASE_BACK) ] || touch .$(DATABASE_PATH)$(DATABASE_BACK)
+	$(DOCKER) exec $(DOCKER_CONTAINER) sh -c 'pg_dump -d $(DATABASE_NAME) -U "$(DATABASE_USER)"' > $(ROOT_DIR)$(DATABASE_PATH)$(DATABASE_BACK)
+	echo ${C_YEL}"$(PROJECT_NAME) DATABASE"${C_END}" backup has been created at "${C_BLU}"$(DATABASE_PATH)$(DATABASE_BACK)"${C_END}
 
+sql-drop: ## drops the container main database but recreates the database without schema as a reset action
+	$(DOCKER) exec -i $(DOCKER_CONTAINER) sh -c 'dropdb -f $(DATABASE_NAME) -U "$(DATABASE_USER)"; createdb $(DATABASE_NAME) -U "$(DATABASE_USER)"'
+	echo ${C_YEL}"$(PROJECT_NAME) DATABASE"${C_END}" in container "${C_YEL}"$(DOCKER_CONTAINER)"${C_END}" has been deleted."

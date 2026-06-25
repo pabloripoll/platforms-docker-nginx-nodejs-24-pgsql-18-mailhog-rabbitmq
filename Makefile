@@ -36,7 +36,7 @@ help: ## shows this Makefile help message
 # -------------------------------------------------------------------------------------------------
 #  System
 # -------------------------------------------------------------------------------------------------
-.PHONY: local-info local-ownership local-ownership-set services-set services-create services-info services-destroy
+.PHONY: local-info local-ownership local-ownership-set
 
 local_ip ?= $(word 1,$(shell hostname -I))
 local-info: ## shows local machine ip and container ports set
@@ -50,17 +50,22 @@ local-ownership: ## shows local ownership
 local-ownership-set: ## sets recursively local root directory ownership
 	$(SUDO) chown -R ${user}:${group} $(ROOT_DIR)/
 
-services-set: ## sets all container services
-	$(MAKE) apirest-set db-set mailer-set broker-set
+# -------------------------------------------------------------------------------------------------
+#  Networking
+# -------------------------------------------------------------------------------------------------
+.PHONY: network-exists network-create network-info network-destroy
 
-services-create: ## builds and starts up all container services
-	$(MAKE) apirest-create db-create mailer-create broker-create
+network-exists: ## lists all local networks
+	$(DOCKER) network ls
 
-services-info: ## shows all container services information
-	$(MAKE) apirest-info db-info mailer-info broker-info
+network-create: ## creates network
+	$(DOCKER) network create --driver bridge $(PROJECT_LEAD)-$(PROJECT_CNET)
 
-services-destroy: ## destroys all container services
-	$(MAKE) apirest-destroy db-destroy mailer-destroy broker-destroy
+network-info: ## shows network information
+	$(DOCKER) network inspect $(PROJECT_LEAD)-$(PROJECT_CNET) --format '{{json .Containers}}'
+
+network-destroy: ## destroys network
+	$(DOCKER) network rm $(PROJECT_LEAD)-$(PROJECT_CNET)
 
 # -------------------------------------------------------------------------------------------------
 #  Backend API Service
@@ -76,12 +81,18 @@ apirest-info: ## shows the apirest docker related information
 apirest-set: ## sets the apirest enviroment file to build the container
 	cd platforms/$(APIREST_PLTF) && $(MAKE) env-set
 
-apirest-create: ## creates the apirest container from Docker image
-	cd platforms/$(APIREST_PLTF) && $(MAKE) build up
+apirest-build: ## builds and ensures changes in the Dockerfile, build steps, or copied-in files are applied
+	cd platforms/$(APIREST_PLTF) && $(MAKE) build
 
-apirest-network: ## creates the apirest container network - execute this recipe first before others
+apirest-create: ## starts up or creates the container for running in detached mode
+	cd platforms/$(APIREST_PLTF) && $(MAKE) up
+
+apirest-network: ## starts up into an existing custom network for container-to-container communication, runnning in detached mode
+	cd platforms/$(APIREST_PLTF) && $(MAKE) clear network
+
+apirest-host-gateway: ## starts up for container-to-host communication, runnning in detached mode
 	$(MAKE) apirest-stop
-	cd platforms/$(APIREST_PLTF) && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.network.yml up -d
+	cd platforms/$(APIREST_PLTF) && $(MAKE) clear host-gateway
 
 apirest-ssh: ## enters the apirest container shell
 	cd platforms/$(APIREST_PLTF) && $(MAKE) ssh
@@ -125,14 +136,16 @@ db-info: ## shows docker related information
 db-set: ## sets the database enviroment file to build the container
 	cd platforms/$(DATABASE_PLTF) && $(MAKE) env-set
 
-db-create: ## creates the database container from Docker image
-	cd platforms/$(DATABASE_PLTF) && $(MAKE) build up
+db-build: ## builds and ensures changes in the Dockerfile, build steps, or copied-in files are applied
+	cd platforms/$(DATABASE_PLTF) && $(MAKE) build
 
-db-network: ## creates the database container external network
-	$(MAKE) apirest-stop
-	cd platforms/$(DATABASE_PLTF) && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.network.yml up -d
+db-create: ## starts up or creates the container for running in detached mode
+	cd platforms/$(DATABASE_PLTF) && $(MAKE) up
 
-db-ssh: ## enters the apirest container shell
+db-network: ## starts up into an existing custom network for container-to-container communication, runnning in detached mode
+	cd platforms/$(DATABASE_PLTF) && $(MAKE) clear network
+
+db-ssh: ## enters the container shell
 	cd platforms/$(DATABASE_PLTF) && $(MAKE) ssh
 
 db-start: ## starts the database container running
@@ -202,12 +215,14 @@ mailer-info: ## shows the mailer docker related information
 mailer-set: ## sets the mailer enviroment file to build the container
 	cd platforms/$(MAILER_PLTF) && $(MAKE) env-set
 
-mailer-create: ## creates the mailer container from Docker image
-	cd platforms/$(MAILER_PLTF) && $(MAKE) build up
+mailer-build: ## builds mailer and ensures changes in the Dockerfile, build steps, or copied-in files are applied
+	cd platforms/$(MAILER_PLTF) && $(MAKE) build
 
-mailer-network: ## creates the mailer container network - execute this recipe first before others
-	$(MAKE) mailer-stop
-	cd platforms/$(MAILER_PLTF) && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.network.yml up -d
+mailer-create: ## starts up mailer or creates the container for running in detached mode
+	cd platforms/$(MAILER_PLTF) && $(MAKE) up
+
+mailer-network: ## starts up mailer into an existing custom network for container-to-container communication, runnning in detached mode
+	cd platforms/$(MAILER_PLTF) && $(MAKE) clear network
 
 mailer-ssh: ## enters the mailer container shell
 	cd platforms/$(MAILER_PLTF) && $(MAKE) ssh
@@ -251,12 +266,14 @@ broker-info: ## shows the broker docker related information
 broker-set: ## sets the broker enviroment file to build the container
 	cd platforms/$(BROKER_PLTF) && $(MAKE) env-set
 
-broker-create: ## creates the broker container from Docker image
-	cd platforms/$(BROKER_PLTF) && $(MAKE) build up
+broker-build: ## builds broker and ensures changes in the Dockerfile, build steps, or copied-in files are applied
+	cd platforms/$(BROKER_PLTF) && $(MAKE) build
 
-broker-network: ## creates the broker container network - execute this recipe first before others
-	$(MAKE) broker-stop
-	cd platforms/$(BROKER_PLTF) && $(DOCKER_COMPOSE) -f docker-compose.yml -f docker-compose.network.yml up -d
+broker-create: ## starts up broker or creates the container for running in detached mode
+	cd platforms/$(BROKER_PLTF) && $(MAKE) up
+
+broker-network: ## starts up broker into an existing custom network for container-to-container communication, runnning in detached mode
+	cd platforms/$(BROKER_PLTF) && $(MAKE) clear network
 
 broker-ssh: ## enters the broker container shell
 	cd platforms/$(BROKER_PLTF) && $(MAKE) ssh
@@ -295,8 +312,9 @@ repo-flush: ## echoes clearing commands for git repository cache on local IDE an
 	echo ${C_YEL}"Clear repository for untracked files:"${C_END}
 	echo ${C_YEL}"$$"${C_END}" git rm -rf --cached .; git add .; git commit -m \"maint: cache cleared for untracked files\""
 	echo ""
-	echo ${C_YEL}"Platform repository against REST API repository:"${C_END}
-	echo ${C_YEL}"$$"${C_END}" git rm -r --cached -- \"apirest/*\" \":(exclude)apirest/.gitkeep\""
+	echo ${C_YEL}"Detach REST/GRPC API repository from platforms repository:"${C_END}
+	echo ${C_YEL}"$$"${C_END}" git rm -r --cached -- \"api-rest/*\" \":(exclude)api-rest/.gitkeep\""
+	echo ${C_YEL}"$$"${C_END}" git rm -r --cached -- \"api-grpc/*\" \":(exclude)api-grpc/.gitkeep\""
 
 repo-commit: ## echoes common git commands
 	echo ${C_YEL}"Common commiting commands:"${C_END}
