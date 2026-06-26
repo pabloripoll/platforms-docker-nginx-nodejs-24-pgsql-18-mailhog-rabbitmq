@@ -1,0 +1,76 @@
+# Stage 1: Pull official Node binaries matching Debian Bookworm's glibc environment
+FROM node:24-bookworm-slim AS node-binaries
+FROM debian:bookworm-slim
+
+ARG UID=1000
+ARG GID=1000
+ARG USER=appuser
+ARG GROUP=appgroup
+
+ENV UID=${UID}
+ENV GID=${GID}
+ENV USER=${USER}
+ENV GROUP=${GROUP}
+
+# Install Debian utilities
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    sudo \
+    curl \
+    wget \
+    openssl \
+    nginx \
+    zip \
+    nano \
+    git \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create system group and user utilizing native Debian shadow-utils syntax
+RUN groupadd -g ${GID} ${GROUP} \
+    && useradd -u ${UID} -m -d /home/${USER} -s /bin/bash -g ${GROUP} ${USER} \
+    && chmod u+s /bin/su \
+    && echo "${USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# Map the verified NodeJS 24 environment from Stage 1 into native paths
+COPY --from=node-binaries /usr/local/include /usr/local/include
+COPY --from=node-binaries /usr/local/lib /usr/local/lib
+COPY --from=node-binaries /usr/local/bin /usr/local/bin
+
+# Force link core node engines and install global package managers safely
+RUN ln -s /usr/local/bin/node /usr/bin/node \
+    && ln -s /usr/local/bin/npm /usr/bin/npm \
+    && npm install -g yarn --force
+
+# Configure NGINX (Removes standard boilerplate definitions safely)
+COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY config/nginx/conf.d /etc/nginx/conf.d/
+
+# Configure Supervisord
+COPY config/supervisor/supervisord.conf /etc/supervisor/supervisord.conf
+COPY config/supervisor/conf.d/. /etc/supervisor/conf.d/
+
+# Create project root
+RUN mkdir -p /var/www
+WORKDIR /var/www
+
+# Copy files and fix permissions immediately
+COPY --chown=${USER}:${GROUP} . /var/www
+
+# Clean up default server directories if they were initialized by APT
+RUN rm -rf /var/www/html /var/www/localhost
+
+# Ensure Debian runtime/PID folders exist and are writable by your custom non-root user
+RUN mkdir -p /run /var/lib/nginx /var/log/nginx /var/log/supervisor /var/run/supervisor \
+    && chown -R ${USER}:${GROUP} /var/www /run /var/lib/nginx /var/log/nginx /var/log/supervisor /var/run/supervisor
+
+# Switch to non-root user execution
+USER ${USER}
+
+# Setup target Node environment pathways within the user's home folder profile
+ENV NPM_CONFIG_PREFIX=/home/${USER}/.npm-global
+ENV PATH=/home/${USER}/.npm-global/bin:$PATH
+
+EXPOSE 80 3000 8080
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
